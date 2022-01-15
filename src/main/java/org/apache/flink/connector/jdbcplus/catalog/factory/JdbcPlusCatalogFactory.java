@@ -74,6 +74,7 @@ public class JdbcPlusCatalogFactory implements CatalogFactory {
                 helper.getOptions().get(DEFAULT_DATABASE),
                 helper.getOptions().get(USERNAME),
                 helper.getOptions().get(PASSWORD),
-                helper.getOptions().get(BASE_URL));
+                helper.getOptions().get(BASE_URL),
+                null);
     }
 }

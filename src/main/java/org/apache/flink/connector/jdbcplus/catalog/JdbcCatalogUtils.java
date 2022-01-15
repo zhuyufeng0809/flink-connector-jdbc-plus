@@ -43,14 +43,15 @@ public class JdbcCatalogUtils {
             String defaultDatabase,
             String username,
             String pwd,
-            String baseUrl) {
+            String baseUrl,
+            String jdbcUrlPara) {
         JdbcDialect dialect = JdbcDialects.get(baseUrl).get();
 
         if (dialect instanceof PostgresDialect) {
             return new PostgresCatalog(catalogName, defaultDatabase, username, pwd, baseUrl);
         } else if (dialect instanceof MySQLDialect) {
             //support MysqlCatalog
-            return new MysqlCatalog(catalogName, defaultDatabase, username, pwd, baseUrl);
+            return new MysqlCatalog(catalogName, defaultDatabase, username, pwd, baseUrl, jdbcUrlPara);
         } else  {
             throw new UnsupportedOperationException(
                     String.format("Catalog for '%s' is not supported yet.", dialect));

@@ -52,4 +52,6 @@ public class MysqlCatalogTable extends AbstractCatalogTable{
     public Optional<String> getDetailedDescription() {
         return Optional.of("This is a catalog table in an im-memory catalog");
     }
+
+
 }
