@@ -75,7 +75,7 @@ public final class JdbcPlusGenerator extends AbstractGenerator {
 
     @Override
     public void createTable(CatalogName catalogName, ObjectPath tablePath, Map<String, String> props) throws Exception {
-        Catalog catalog = catalogs.get(catalogName);
+        JdbcCatalog catalog = (JdbcCatalog) catalogs.get(catalogName);
 
         if (catalog == null) {
             throw new CatalogNotExistException(
