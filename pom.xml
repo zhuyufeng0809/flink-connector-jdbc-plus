@@ -26,13 +26,13 @@ under the License.
 	<groupId>com.leqee.etl</groupId>
 	<artifactId>flink-connector-jdbc-plus_${scala.binary.version}</artifactId>
 	<name>Flink : Connectors : jdbc-plus</name>
-	<version>1.14.2</version>
+	<version>1.14.3</version>
 
 	<packaging>jar</packaging>
 
 	<properties>
 		<scala.binary.version>2.12</scala.binary.version>
-		<project.version>1.14.2</project.version>
+		<project.version>1.14.3</project.version>
 		<postgres.version>42.2.10</postgres.version>
 		<otj-pg-embedded.version>0.13.3</otj-pg-embedded.version>
 	</properties>
