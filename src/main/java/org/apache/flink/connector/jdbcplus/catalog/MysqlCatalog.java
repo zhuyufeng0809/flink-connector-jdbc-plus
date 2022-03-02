@@ -41,7 +41,12 @@ public class MysqlCatalog extends AbstractJdbcCatalog {
             String jdbcUrlPara) {
         super(catalogName, defaultDatabase, username, pwd, baseUrl);
 
-        this.jdbcUrlPara = jdbcUrlPara.length() == 0 ? jdbcUrlPara : "?" + jdbcUrlPara;
+        if (jdbcUrlPara == null) {
+            this.jdbcUrlPara = "";
+        } else {
+            this.jdbcUrlPara = jdbcUrlPara.length() == 0 ? jdbcUrlPara : "?" + jdbcUrlPara;
+        }
+
         this.databases = new LinkedHashMap<>();
         this.tables = new LinkedHashMap<>();
     }
@@ -255,7 +260,7 @@ public class MysqlCatalog extends AbstractJdbcCatalog {
                 return DataTypes.BYTES();
             default:
                 throw new UnsupportedOperationException(
-                        String.format("Doesn't support Mysql type ''%s yet, please contact author", mysqlType));
+                        String.format("Doesn't support Mysql type '%s' yet, please contact author", mysqlType));
         }
     }
 
