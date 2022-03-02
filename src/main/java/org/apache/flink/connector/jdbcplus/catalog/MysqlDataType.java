@@ -29,4 +29,6 @@ public class MysqlDataType {
     public final static String MYSQL_BINARY = "BINARY";
     public final static String MYSQL_VARBINARY = "VARBINARY";
     public final static String MYSQL_BLOB = "BLOB";
+    //support PolarDb Mysql type 'BIT'
+    public final static String MYSQL_BIT = "BIT";
 }

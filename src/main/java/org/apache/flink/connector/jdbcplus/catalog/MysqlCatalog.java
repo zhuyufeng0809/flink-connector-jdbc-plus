@@ -253,14 +253,18 @@ public class MysqlCatalog extends AbstractJdbcCatalog {
             case MysqlDataType.MYSQL_CHAR:
             case MysqlDataType.MYSQL_VARCHAR:
             case MysqlDataType.MYSQL_TEXT:
+                //type 'BIT' reference PolarDb Mysql official website
+                //https://help.aliyun.com/document_detail/131282.htm?spm=a2c4g.11186623.0.0.4f86739cjdzqAQ#concept-1813784
+            case MysqlDataType.MYSQL_BIT:
                 return DataTypes.STRING();
             case MysqlDataType.MYSQL_BINARY:
             case MysqlDataType.MYSQL_VARBINARY:
             case MysqlDataType.MYSQL_BLOB:
                 return DataTypes.BYTES();
             default:
+                String columnName = metadata.getColumnName(colIndex);
                 throw new UnsupportedOperationException(
-                        String.format("Doesn't support Mysql type '%s' yet, please contact author", mysqlType));
+                        String.format("Doesn't support Mysql type '%s' of column '%s' yet, please contact author", mysqlType,columnName));
         }
     }
 
