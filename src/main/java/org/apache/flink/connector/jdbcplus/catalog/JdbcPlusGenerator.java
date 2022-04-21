@@ -1,6 +1,9 @@
 package org.apache.flink.connector.jdbcplus.catalog;
 
+import org.apache.flink.api.java.typeutils.RowTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.jdbcplus.JdbcInputFormat;
+import org.apache.flink.connector.jdbcplus.split.JdbcNumericBetweenParametersProvider;
 import org.apache.flink.table.catalog.Catalog;
 import org.apache.flink.table.catalog.CatalogTable;
 import org.apache.flink.table.catalog.ObjectPath;
@@ -20,6 +23,8 @@ public final class JdbcPlusGenerator extends AbstractGenerator {
     private final ParameterTool property;
     private final boolean isStreamingMode;
     private final Map<CatalogName, Catalog> catalogs;
+    private final String jdbcUrlPrefix = "jdbc:mysql://";
+    private final String jdbcUrlPort = ":3306";
 
     private JdbcPlusGenerator(ParameterTool config, boolean isStreamingMode) throws Exception {
         this.cmd = config;
@@ -31,8 +36,6 @@ public final class JdbcPlusGenerator extends AbstractGenerator {
     @Override
     public Catalog createCatalog(CatalogName catalogName) {
         String currentCatalogName = catalogName.toString();
-        String jdbcUrlPrefix = "jdbc:mysql://";
-        String jdbcUrlPort = ":3306";
 
         switch (currentCatalogName) {
             case CatalogName.ODS_CATALOG_NAME:
@@ -87,6 +90,39 @@ public final class JdbcPlusGenerator extends AbstractGenerator {
             defaultProps.putAll(props);
             catalog.createTable(tablePath, catalogTable.copy(defaultProps), false);
         }
+    }
+
+    public JdbcInputFormat createJdbcInputFormat(CatalogName catalogName, String sql, RowTypeInfo rowTypeInfo, int fetchSize, JdbcNumericBetweenParametersProvider provider) {
+        String currentCatalogName = catalogName.toString();
+        JdbcInputFormat.JdbcInputFormatBuilder builder = JdbcInputFormat.buildJdbcInputFormat();
+
+        switch (currentCatalogName) {
+            case CatalogName.ODS_CATALOG_NAME:
+                builder
+                    .setUsername(getProperty("etlpolar.username"))
+                    .setPassword(getProperty("etlpolar.password"))
+                    .setDrivername("com.mysql.cj.jdbc.Driver")
+                    .setDBUrl(jdbcUrlPrefix + getProperty("etlpolar.host") + jdbcUrlPort);
+            case CatalogName.CDM_CATALOG_NAME:
+                builder
+                    .setUsername(getProperty("etladb.username"))
+                    .setPassword(getProperty("etladb.password"))
+                    .setDrivername("com.mysql.cj.jdbc.Driver")
+                    .setDBUrl(jdbcUrlPrefix + getProperty("etladb.host") + jdbcUrlPort);
+            case CatalogName.ADS_CATALOG_NAME:
+                builder
+                    .setUsername(getProperty("pioneeradb.username"))
+                    .setPassword(getProperty("pioneeradb.password"))
+                    .setDrivername("com.mysql.cj.jdbc.Driver")
+                    .setDBUrl(jdbcUrlPrefix + getProperty("pioneeradb.host") + jdbcUrlPort);
+        }
+
+        return builder
+                .setFetchSize(fetchSize)
+                .setQuery(sql)
+                .setParametersProvider(provider)
+                .setRowTypeInfo(rowTypeInfo)
+                .finish();
     }
 
     public String getProperty(String key) {

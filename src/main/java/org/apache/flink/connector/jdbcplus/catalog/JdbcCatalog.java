@@ -31,7 +31,13 @@ import org.apache.flink.table.catalog.exceptions.TableNotExistException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Catalogs for relational databases via JDBC. */
 @PublicEvolving
@@ -53,6 +59,23 @@ public class JdbcCatalog extends AbstractJdbcCatalog {
         internal =
                 JdbcCatalogUtils.createCatalog(
                         catalogName, defaultDatabase, username, pwd, baseUrl, jdbcUrlPara);
+    }
+
+    public Map<String, String> getMinAndMaxBound(String sql) {
+        HashMap<String, String> result = new HashMap<>();
+
+        try(Connection conn = DriverManager.getConnection(baseUrl, username, pwd)) {
+            PreparedStatement statement = conn.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery();
+
+            resultSet.next();
+            result.put("lower-bound", resultSet.getString(1));
+            result.put("upper-bound", resultSet.getString(2));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
     // ------ databases -----

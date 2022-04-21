@@ -112,6 +112,7 @@ public class JdbcDynamicTableSource
             builder.setParametersProvider(
                     new JdbcNumericBetweenParametersProvider(lowerBound, upperBound)
                             .ofBatchNum(numPartitions));
+            //source code used ofBatchNum method, there's another ofBatchSize method
             query +=
                     " WHERE "
                             + dialect.quoteIdentifier(readOptions.getPartitionColumnName().get())

@@ -22,11 +22,15 @@ import org.apache.flink.connector.jdbcplus.internal.converter.JdbcRowConverter;
 import org.apache.flink.connector.jdbcplus.internal.converter.MySQLRowConverter;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 /** JDBC dialect for MySQL. */
 public class MySQLDialect extends AbstractDialect {
@@ -42,6 +46,8 @@ public class MySQLDialect extends AbstractDialect {
     // https://dev.mysql.com/doc/refman/8.0/en/fixed-point-types.html
     private static final int MAX_DECIMAL_PRECISION = 65;
     private static final int MIN_DECIMAL_PRECISION = 1;
+
+    private static final Logger LOG = LoggerFactory.getLogger(MySQLDialect.class);
 
     @Override
     public boolean canHandle(String url) {
@@ -92,7 +98,21 @@ public class MySQLDialect extends AbstractDialect {
                 + " VALUES ("
                 + placeholders
                 + ")";
+
+        LOG.info("Upsert Statement is:\n {}", upsert);
         return Optional.of(upsert);
+    }
+
+    /*
+    Logic Delete
+     */
+    @Override
+    public String getDeleteStatement(String tableName, String[] conditionFields) {
+        String conditionClause =
+                Arrays.stream(conditionFields)
+                        .map(f -> format("%s = :%s", quoteIdentifier(f), f))
+                        .collect(Collectors.joining(" AND "));
+        return "UPDATE " + quoteIdentifier(tableName) + "SET is_del = 1 WHERE " + conditionClause;
     }
 
     @Override
