@@ -8,6 +8,7 @@ import org.apache.flink.table.catalog.Catalog;
 import org.apache.flink.table.catalog.CatalogTable;
 import org.apache.flink.table.catalog.ObjectPath;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,19 +102,19 @@ public final class JdbcPlusGenerator extends AbstractGenerator {
                 builder
                     .setUsername(getProperty("etlpolar.username"))
                     .setPassword(getProperty("etlpolar.password"))
-                    .setDrivername("com.mysql.cj.jdbc.Driver")
+                    .setDrivername(getProperty("etlpolar.driverClassName"))
                     .setDBUrl(jdbcUrlPrefix + getProperty("etlpolar.host") + jdbcUrlPort);
             case CatalogName.CDM_CATALOG_NAME:
                 builder
                     .setUsername(getProperty("etladb.username"))
                     .setPassword(getProperty("etladb.password"))
-                    .setDrivername("com.mysql.cj.jdbc.Driver")
+                    .setDrivername(getProperty("etladb.driverClassName"))
                     .setDBUrl(jdbcUrlPrefix + getProperty("etladb.host") + jdbcUrlPort);
             case CatalogName.ADS_CATALOG_NAME:
                 builder
                     .setUsername(getProperty("pioneeradb.username"))
                     .setPassword(getProperty("pioneeradb.password"))
-                    .setDrivername("com.mysql.cj.jdbc.Driver")
+                    .setDrivername(getProperty("pioneeradb.driverClassName"))
                     .setDBUrl(jdbcUrlPrefix + getProperty("pioneeradb.host") + jdbcUrlPort);
         }
 

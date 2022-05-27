@@ -3,6 +3,7 @@ package org.apache.flink.connector.jdbcplus.catalog;
 import org.apache.flink.table.catalog.Catalog;
 import org.apache.flink.table.catalog.ObjectPath;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**

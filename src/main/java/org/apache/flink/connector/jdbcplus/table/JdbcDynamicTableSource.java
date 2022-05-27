@@ -24,6 +24,7 @@ import org.apache.flink.connector.jdbcplus.internal.options.JdbcConnectorOptions
 import org.apache.flink.connector.jdbcplus.internal.options.JdbcLookupOptions;
 import org.apache.flink.connector.jdbcplus.internal.options.JdbcReadOptions;
 import org.apache.flink.connector.jdbcplus.split.JdbcNumericBetweenParametersProvider;
+import org.apache.flink.connector.jdbcplus.utils.FilterPushDownHelper;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.source.DynamicTableSource;
@@ -31,12 +32,17 @@ import org.apache.flink.table.connector.source.InputFormatProvider;
 import org.apache.flink.table.connector.source.LookupTableSource;
 import org.apache.flink.table.connector.source.ScanTableSource;
 import org.apache.flink.table.connector.source.TableFunctionProvider;
+import org.apache.flink.table.connector.source.abilities.SupportsFilterPushDown;
 import org.apache.flink.table.connector.source.abilities.SupportsLimitPushDown;
 import org.apache.flink.table.connector.source.abilities.SupportsProjectionPushDown;
+import org.apache.flink.table.expressions.*;
+import org.apache.flink.table.planner.expressions.RexNodeExpression;
 import org.apache.flink.table.types.logical.RowType;
 import org.apache.flink.table.utils.TableSchemaUtils;
 import org.apache.flink.util.Preconditions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /** A {@link DynamicTableSource} for JDBC. */
@@ -45,6 +51,7 @@ public class JdbcDynamicTableSource
         implements ScanTableSource,
                 LookupTableSource,
                 SupportsProjectionPushDown,
+                SupportsFilterPushDown,
                 SupportsLimitPushDown {
 
     private final JdbcConnectorOptions options;
@@ -182,5 +189,13 @@ public class JdbcDynamicTableSource
     @Override
     public void applyLimit(long limit) {
         this.limit = limit;
+    }
+
+    @Override
+    public Result applyFilters(List<ResolvedExpression> filters) {
+        System.out.println(options.getTableName() + " filter push down is:");
+        System.out.println(filters);
+        System.out.println(FilterPushDownHelper.convert(filters));
+        return Result.of(new ArrayList<>(filters), new ArrayList<>(filters));
     }
 }
