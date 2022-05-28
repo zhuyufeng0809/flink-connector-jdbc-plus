@@ -1,11 +1,9 @@
 package org.apache.flink.connector.jdbcplus.utils;
 
-import org.apache.flink.table.expressions.CallExpression;
-import org.apache.flink.table.expressions.FieldReferenceExpression;
-import org.apache.flink.table.expressions.ResolvedExpression;
-import org.apache.flink.table.expressions.ValueLiteralExpression;
+import org.apache.flink.table.expressions.*;
 import org.apache.flink.table.functions.BuiltInFunctionDefinitions;
 import org.apache.flink.table.functions.FunctionDefinition;
+import org.apache.flink.table.planner.expressions.RexNodeExpression;
 import ru.yandex.clickhouse.util.ClickHouseValueFormatter;
 
 import java.sql.Time;
@@ -15,17 +13,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.flink.connector.jdbcplus.utils.SqlClause.*;
 
 /** Filter push down, convert flink expression to mysql filter clause. */
-
-/**
- * each recursion method call order is:
- * convert -> convertExpression -> convertFieldAndLiteral/convertOnlyChild/convertLogicExpression
- */
 public class FilterPushDownHelper {
 
     private static final Map<FunctionDefinition, SqlClause> FILTERS = new HashMap<>();
@@ -81,7 +76,7 @@ public class FilterPushDownHelper {
             case LT_EQ:
                 return convertFieldAndLiteral(LT_EQ.formatter, call);
             case CAST:
-                return convertFieldAndLiteral(CAST.formatter, call);
+                return convertFieldAndType(CAST.formatter, call);
             case IS_NULL:
                 return convertOnlyChild(IS_NULL.formatter, call);
             case IS_NOT_NULL:
@@ -145,17 +140,39 @@ public class FilterPushDownHelper {
                         .map(expression -> ((FieldReferenceExpression) expression))
                         .findAny()
                         .orElse(null);
+
+        CallExpression childrenCallExpression =
+                args.stream()
+                        .filter(expression -> expression instanceof CallExpression)
+                        .map(expression -> ((CallExpression) expression))
+                        .findAny()
+                        .orElse(null);
+
         ValueLiteralExpression literalExpression =
                 args.stream()
                         .filter(expression -> expression instanceof ValueLiteralExpression)
                         .map(expression -> (ValueLiteralExpression) expression)
                         .findAny()
                         .orElse(null);
-        if (fieldExpression == null || literalExpression == null) {
+        if ((fieldExpression == null && childrenCallExpression == null) || literalExpression == null) {
             return Optional.empty();
         }
 
-        String fieldName = quoteIdentifier(fieldExpression.getName());
+        String fieldName = null;
+
+        if (fieldExpression != null) {
+            fieldName = quoteIdentifier(fieldExpression.getName());
+        }
+
+        if (childrenCallExpression != null) {
+            Optional<String> convertResult = convertExpression(args.get(0), args.size());
+            if (convertResult.isPresent()) {
+                fieldName = convertResult.get();
+            } else {
+                return Optional.empty();
+            }
+        }
+
         String literalValue = convertLiteral(literalExpression).orElse(null);
         if (literalValue == null) {
             return Optional.empty();
@@ -196,6 +213,39 @@ public class FilterPushDownHelper {
                                             : value;
                             return value;
                         });
+    }
+
+    private static Optional<String> convertFieldAndType(Function<String[], String> sqlClauseFormatter, CallExpression callExpression) {
+        List<ResolvedExpression> args = callExpression.getResolvedChildren();
+        if (args.size() != 2) {
+            return Optional.empty();
+        }
+
+        FieldReferenceExpression fieldExpression =
+                args.stream()
+                        .filter(expression -> expression instanceof FieldReferenceExpression)
+                        .map(expression -> ((FieldReferenceExpression) expression))
+                        .findAny()
+                        .orElse(null);
+
+        TypeLiteralExpression typeLiteralExpression =
+                args.stream()
+                        .filter(expression -> expression instanceof TypeLiteralExpression)
+                        .map(expression -> (TypeLiteralExpression) expression)
+                        .findAny()
+                        .orElse(null);
+
+        if (fieldExpression == null || typeLiteralExpression == null) {
+            return Optional.empty();
+        }
+
+        String fieldName = quoteIdentifier(fieldExpression.getName());
+        String literalValue = typeLiteralExpression.getOutputDataType().toString();
+        if (literalValue == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(sqlClauseFormatter.apply(new String[] {fieldName, literalValue}));
     }
 
     private static String quoteIdentifier(String identifier) {
