@@ -34,6 +34,8 @@ public class FilterPushDownHelper {
         FILTERS.put(BuiltInFunctionDefinitions.AND, AND);
         FILTERS.put(BuiltInFunctionDefinitions.OR, OR);
         FILTERS.put(BuiltInFunctionDefinitions.CAST, CAST);
+        FILTERS.put(BuiltInFunctionDefinitions.LIKE, LIKE);
+        FILTERS.put(BuiltInFunctionDefinitions.NOT, NOT);
     }
 
     private FilterPushDownHelper() {}
@@ -53,6 +55,10 @@ public class FilterPushDownHelper {
             return convertValueLiteral((ValueLiteralExpression) resolvedExpression);
         }
 
+        if ((resolvedExpression instanceof FieldReferenceExpression)) {
+            return convertField((FieldReferenceExpression) resolvedExpression);
+        }
+
         if (!(resolvedExpression instanceof CallExpression)) {
             return Optional.empty();
         }
@@ -67,25 +73,29 @@ public class FilterPushDownHelper {
             case EQ:
                 return convertLogicExpression(EQ.formatter, call, filterSize);
             case NOT_EQ:
-                return convertFieldAndLiteral(NOT_EQ.formatter, call);
+                return convertLogicExpression(NOT_EQ.formatter, call, filterSize);
             case GT:
-                return convertFieldAndLiteral(GT.formatter, call);
+                return convertLogicExpression(GT.formatter, call, filterSize);
             case GT_EQ:
-                return convertFieldAndLiteral(GT_EQ.formatter, call);
+                return convertLogicExpression(GT_EQ.formatter, call, filterSize);
             case LT:
-                return convertFieldAndLiteral(LT.formatter, call);
+                return convertLogicExpression(LT.formatter, call, filterSize);
             case LT_EQ:
-                return convertFieldAndLiteral(LT_EQ.formatter, call);
-            case CAST:
-                return convertFieldAndLiteral(CAST.formatter, call);
-            case IS_NULL:
-                return convertOnlyChild(IS_NULL.formatter, call);
-            case IS_NOT_NULL:
-                return convertOnlyChild(IS_NOT_NULL.formatter, call);
+                return convertLogicExpression(LT_EQ.formatter, call, filterSize);
             case OR:
                 return convertLogicExpression(OR.formatter, call, filterSize);
             case AND:
                 return convertLogicExpression(AND.formatter, call, filterSize);
+            case CAST:
+                return convertFieldAndLiteral(CAST.formatter, call);
+            case LIKE:
+                return convertFieldAndLiteral(LIKE.formatter, call);
+            case IS_NULL:
+                return convertOnlyChild(IS_NULL.formatter, call);
+            case IS_NOT_NULL:
+                return convertOnlyChild(IS_NOT_NULL.formatter, call);
+            case NOT:
+                return convertOnlyChild(NOT.formatter, call);
             default:
                 return Optional.empty();
         }
@@ -99,6 +109,12 @@ public class FilterPushDownHelper {
         }
 
         ResolvedExpression child = children.get(0);
+
+        if (child instanceof CallExpression) {
+            Optional<String> sqlClause = convertExpression(child, 1);
+            return sqlClause.map(s -> sqlClauseFormatter.apply(new String[]{s}));
+        }
+
         if (!(child instanceof FieldReferenceExpression)) {
             return Optional.empty();
         }
@@ -203,6 +219,10 @@ public class FilterPushDownHelper {
                                             : value;
                             return value;
                         });
+    }
+
+    private static Optional<String> convertField(FieldReferenceExpression expression) {
+        return Optional.of(quoteIdentifier(expression.getName()));
     }
 
     private static Optional<String> convertTypeLiteral(TypeLiteralExpression expression) {

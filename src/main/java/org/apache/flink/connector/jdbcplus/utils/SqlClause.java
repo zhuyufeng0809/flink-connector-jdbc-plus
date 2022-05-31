@@ -24,7 +24,11 @@ public enum SqlClause {
 
     OR(args -> String.format("%s OR %s", args[0], args[1])),
 
-    CAST(args -> String.format("(CAST %s AS %s)", args[0], args[1]));
+    CAST(args -> String.format("CAST(%s AS %s)", args[0], args[1])),
+
+    LIKE(args -> String.format("%s LIKE %s", args[0], args[1])),
+
+    NOT(args -> String.format("!(%s)", args[0]));
 
     public final Function<String[], String> formatter;
 

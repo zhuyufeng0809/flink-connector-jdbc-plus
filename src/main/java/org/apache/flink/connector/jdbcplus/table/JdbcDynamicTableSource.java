@@ -58,6 +58,7 @@ public class JdbcDynamicTableSource
     private final JdbcLookupOptions lookupOptions;
     private TableSchema physicalSchema;
     private final String dialectName;
+    private String filterClause;
     private long limit = -1;
 
     public JdbcDynamicTableSource(
@@ -194,7 +195,8 @@ public class JdbcDynamicTableSource
     public Result applyFilters(List<ResolvedExpression> filters) {
         System.out.println(options.getTableName() + " filter push down is:");
         System.out.println(filters);
-        System.out.println(FilterPushDownHelper.convert(filters));
+        this.filterClause = FilterPushDownHelper.convert(filters);
+        System.out.println(this.filterClause);
         return Result.of(new ArrayList<>(filters), new ArrayList<>(filters));
     }
 }
