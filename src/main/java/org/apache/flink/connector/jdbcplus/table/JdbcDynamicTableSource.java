@@ -58,6 +58,7 @@ public class JdbcDynamicTableSource
     private final JdbcLookupOptions lookupOptions;
     private TableSchema physicalSchema;
     private final String dialectName;
+    private String betweenClause;
     private String filterClause;
     private long limit = -1;
 
@@ -104,7 +105,6 @@ public class JdbcDynamicTableSource
                         .setUsername(options.getUsername().orElse(null))
                         .setPassword(options.getPassword().orElse(null))
                         .setAutoCommit(readOptions.getAutoCommit());
-
         if (readOptions.getFetchSize() != 0) {
             builder.setFetchSize(readOptions.getFetchSize());
         }
@@ -112,6 +112,7 @@ public class JdbcDynamicTableSource
         String query =
                 dialect.getSelectFromStatement(
                         options.getTableName(), physicalSchema.getFieldNames(), new String[0]);
+
         if (readOptions.getPartitionColumnName().isPresent()) {
             long lowerBound = readOptions.getPartitionLowerBound().get();
             long upperBound = readOptions.getPartitionUpperBound().get();
@@ -120,15 +121,14 @@ public class JdbcDynamicTableSource
                     new JdbcNumericBetweenParametersProvider(lowerBound, upperBound)
                             .ofBatchNum(numPartitions));
             //source code used ofBatchNum method, there's another ofBatchSize method
-            query +=
-                    " WHERE "
-                            + dialect.quoteIdentifier(readOptions.getPartitionColumnName().get())
+            this.betweenClause = dialect.quoteIdentifier(readOptions.getPartitionColumnName().get())
                             + " BETWEEN ? AND ?";
         }
-        if (limit >= 0) {
-            query = String.format("%s %s", query, dialect.getLimitClause(limit));
-        }
+
         builder.setQuery(query);
+        builder.setBetweenClause(betweenClause);
+        builder.setFilterClause(filterClause);
+        builder.setLimit(limit);
         final RowType rowType = (RowType) physicalSchema.toRowDataType().getLogicalType();
         builder.setRowConverter(dialect.getRowConverter(rowType));
         builder.setRowDataTypeInfo(
@@ -155,7 +155,11 @@ public class JdbcDynamicTableSource
 
     @Override
     public DynamicTableSource copy() {
-        return new JdbcDynamicTableSource(options, readOptions, lookupOptions, physicalSchema);
+        JdbcDynamicTableSource jdbcDynamicTableSource = new JdbcDynamicTableSource(options, readOptions, lookupOptions, physicalSchema);
+        jdbcDynamicTableSource.betweenClause = this.betweenClause;
+        jdbcDynamicTableSource.filterClause = this.filterClause;
+        jdbcDynamicTableSource.limit = this.limit;
+        return jdbcDynamicTableSource;
     }
 
     @Override
@@ -177,13 +181,15 @@ public class JdbcDynamicTableSource
                 && Objects.equals(lookupOptions, that.lookupOptions)
                 && Objects.equals(physicalSchema, that.physicalSchema)
                 && Objects.equals(dialectName, that.dialectName)
+                && Objects.equals(betweenClause, that.betweenClause)
+                && Objects.equals(filterClause, that.filterClause)
                 && Objects.equals(limit, that.limit);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                options, readOptions, lookupOptions, physicalSchema, dialectName, limit);
+                options, readOptions, lookupOptions, physicalSchema, dialectName, betweenClause, filterClause, limit);
     }
 
     @Override
@@ -194,9 +200,9 @@ public class JdbcDynamicTableSource
     @Override
     public Result applyFilters(List<ResolvedExpression> filters) {
         System.out.println(options.getTableName() + " filter push down is:");
-        System.out.println(filters);
+        System.out.println("original->" + filters);
         this.filterClause = FilterPushDownHelper.convert(filters);
-        System.out.println(this.filterClause);
+        System.out.println("convert->" + this.filterClause);
         return Result.of(new ArrayList<>(filters), new ArrayList<>(filters));
     }
 }

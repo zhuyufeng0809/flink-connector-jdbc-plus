@@ -51,6 +51,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Optional;
 
 /** InputFormat for {@link JdbcDynamicTableSource}. */
 @Internal
@@ -69,6 +70,10 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
     private int resultSetConcurrency;
     private JdbcRowConverter rowConverter;
     private TypeInformation<RowData> rowDataTypeInfo;
+    private String betweenClause;
+    private String filterClause;
+    private String limitClause;
+    private String separator;
 
     private transient PreparedStatement statement;
     private transient ResultSet resultSet;
@@ -83,7 +88,10 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
             int resultSetType,
             int resultSetConcurrency,
             JdbcRowConverter rowConverter,
-            TypeInformation<RowData> rowDataTypeInfo) {
+            TypeInformation<RowData> rowDataTypeInfo,
+            String betweenClause,
+            String filterClause,
+            long limit) {
         this.connectionProvider = connectionProvider;
         this.fetchSize = fetchSize;
         this.autoCommit = autoCommit;
@@ -93,6 +101,35 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
         this.resultSetConcurrency = resultSetConcurrency;
         this.rowConverter = rowConverter;
         this.rowDataTypeInfo = rowDataTypeInfo;
+
+        if (betweenClause == null) {
+            this.betweenClause = "";
+        } else {
+            this.betweenClause = betweenClause;
+        }
+
+        if (filterClause == null) {
+            this.filterClause = "";
+        } else {
+            this.filterClause = filterClause;
+        }
+
+        if (limit < 0) {
+            this.limitClause = "";
+        } else {
+            this.limitClause = " LIMIT " + limit;
+        }
+
+        if ((!this.betweenClause.equals("")) || (!this.filterClause.equals(""))) {
+            this.queryTemplate += " WHERE ";
+        }
+
+        if ((!this.betweenClause.equals("")) && (!this.filterClause.equals(""))) {
+            this.separator = " AND ";
+        } else {
+            this.separator = "";
+        }
+
     }
 
     @Override
@@ -110,6 +147,8 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
             if (autoCommit != null) {
                 dbConn.setAutoCommit(autoCommit);
             }
+
+            queryTemplate = String.format("%s%s%s%s%s", queryTemplate, betweenClause, separator, filterClause, limitClause);
             statement = dbConn.prepareStatement(queryTemplate, resultSetType, resultSetConcurrency);
             if (fetchSize == Integer.MIN_VALUE || fetchSize > 0) {
                 statement.setFetchSize(fetchSize);
@@ -307,6 +346,9 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
         private TypeInformation<RowData> rowDataTypeInfo;
         private int resultSetType = ResultSet.TYPE_FORWARD_ONLY;
         private int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
+        private String betweenClause;
+        private String filterClause;
+        private long limit;
 
         public Builder() {
             this.connOptionsBuilder = new JdbcConnectionOptions.JdbcConnectionOptionsBuilder();
@@ -376,6 +418,21 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
             return this;
         }
 
+        public Builder setBetweenClause(String betweenClause) {
+            this.betweenClause = betweenClause;
+            return this;
+        }
+
+        public Builder setFilterClause(String filterClause) {
+            this.filterClause = filterClause;
+            return this;
+        }
+
+        public Builder setLimit(long limit) {
+            this.limit = limit;
+            return this;
+        }
+
         public JdbcRowDataInputFormat build() {
             if (this.queryTemplate == null) {
                 throw new NullPointerException("No query supplied");
@@ -395,7 +452,10 @@ public class JdbcRowDataInputFormat extends RichInputFormat<RowData, InputSplit>
                     this.resultSetType,
                     this.resultSetConcurrency,
                     this.rowConverter,
-                    this.rowDataTypeInfo);
+                    this.rowDataTypeInfo,
+                    this.betweenClause,
+                    this.filterClause,
+                    this.limit);
         }
     }
 }

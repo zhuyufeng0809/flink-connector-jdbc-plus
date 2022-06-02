@@ -226,7 +226,7 @@ public class FilterPushDownHelper {
     }
 
     private static Optional<String> convertTypeLiteral(TypeLiteralExpression expression) {
-        return Optional.of(expression.getOutputDataType().getLogicalType().toString());
+        return Optional.of(expression.getOutputDataType().getLogicalType().asSummaryString().replaceAll(" .*", ""));
     }
 
     private static String quoteIdentifier(String identifier) {
