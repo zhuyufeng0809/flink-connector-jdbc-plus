@@ -31,4 +31,6 @@ public class MysqlDataType {
     public final static String MYSQL_BLOB = "BLOB";
     //support PolarDb Mysql type 'BIT'
     public final static String MYSQL_BIT = "BIT";
+    //support PolarDb Mysql type 'TIMESTAMP'
+    public final static String MYSQL_TIMESTAMP = "TIMESTAMP";
 }

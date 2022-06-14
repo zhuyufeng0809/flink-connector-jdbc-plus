@@ -266,6 +266,7 @@ public class MysqlCatalog extends AbstractJdbcCatalog {
             case MysqlDataType.MYSQL_TIME:
                 return DataTypes.TIME(scale);
             case MysqlDataType.MYSQL_DATETIME:
+            case MysqlDataType.MYSQL_TIMESTAMP:
                 return DataTypes.TIMESTAMP(scale);
             case MysqlDataType.MYSQL_CHAR:
             case MysqlDataType.MYSQL_VARCHAR:
