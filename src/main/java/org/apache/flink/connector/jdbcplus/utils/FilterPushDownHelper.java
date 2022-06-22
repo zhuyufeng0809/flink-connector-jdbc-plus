@@ -3,7 +3,6 @@ package org.apache.flink.connector.jdbcplus.utils;
 import org.apache.flink.table.expressions.*;
 import org.apache.flink.table.functions.BuiltInFunctionDefinitions;
 import org.apache.flink.table.functions.FunctionDefinition;
-import ru.yandex.clickhouse.util.ClickHouseValueFormatter;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -17,7 +16,7 @@ import java.util.function.Function;
 import static java.util.stream.Collectors.joining;
 import static org.apache.flink.connector.jdbcplus.utils.SqlClause.*;
 
-/** Filter push down, convert flink expression to mysql filter clause. */
+/** Filter push down, convert flink expression to sql filter clause. */
 public class FilterPushDownHelper {
 
     private static final Map<FunctionDefinition, SqlClause> FILTERS = new HashMap<>();
@@ -196,25 +195,25 @@ public class FilterPushDownHelper {
                             String value;
                             if (o instanceof Time) {
                                 value =
-                                        ClickHouseValueFormatter.formatTimestamp(
+                                        JdbcValueFormatter.formatTimestamp(
                                                 toFixedDateTimestamp(((Time) o).toLocalTime()),
                                                 timeZone);
                             } else if (o instanceof LocalTime) {
                                 value =
-                                        ClickHouseValueFormatter.formatTimestamp(
+                                        JdbcValueFormatter.formatTimestamp(
                                                 toFixedDateTimestamp((LocalTime) o), timeZone);
                             } else if (o instanceof Instant) {
                                 value =
-                                        ClickHouseValueFormatter.formatTimestamp(
+                                        JdbcValueFormatter.formatTimestamp(
                                                 Timestamp.from((Instant) o), timeZone);
                             } else {
                                 value =
-                                        ClickHouseValueFormatter.formatObject(
+                                        JdbcValueFormatter.formatObject(
                                                 o, timeZone, timeZone);
                             }
 
                             value =
-                                    ClickHouseValueFormatter.needsQuoting(o)
+                                    JdbcValueFormatter.needsQuoting(o)
                                             ? String.join("", "'", value, "'")
                                             : value;
                             return value;
