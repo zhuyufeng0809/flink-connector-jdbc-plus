@@ -24,6 +24,7 @@ import org.apache.flink.connector.jdbcplus.internal.options.JdbcConnectorOptions
 import org.apache.flink.connector.jdbcplus.internal.options.JdbcLookupOptions;
 import org.apache.flink.connector.jdbcplus.internal.options.JdbcReadOptions;
 import org.apache.flink.connector.jdbcplus.split.JdbcNumericBetweenParametersProvider;
+import org.apache.flink.connector.jdbcplus.utils.FilterExpressionConverter;
 import org.apache.flink.connector.jdbcplus.utils.FilterPushDownHelper;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.connector.ChangelogMode;
@@ -43,6 +44,9 @@ import org.apache.flink.util.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
+import static java.util.stream.Collectors.joining;
 
 /** A {@link DynamicTableSource} for JDBC. */
 @Internal
@@ -199,10 +203,20 @@ public class JdbcDynamicTableSource
 
     @Override
     public Result applyFilters(List<ResolvedExpression> filters) {
+//        System.out.println(options.getTableName() + " filter push down is:");
+//        System.out.println("original->" + filters);
+//        this.filterClause = FilterPushDownHelper.convert(filters);
+//        System.out.println("convert->" + this.filterClause);
         System.out.println(options.getTableName() + " filter push down is:");
         System.out.println("original->" + filters);
-        this.filterClause = FilterPushDownHelper.convert(filters);
-        System.out.println("convert->" + this.filterClause);
+//        System.out.println("convert->" + this.filterClause);
+        String filter = filters.stream()
+                .map(expression -> expression.accept(FilterExpressionConverter.getConvertor()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(joining(" AND "));
+        System.out.println("convert->" + filter);
+        filterClause = filter;
         return Result.of(new ArrayList<>(filters), new ArrayList<>(filters));
     }
 }

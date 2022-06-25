@@ -101,50 +101,52 @@ public class FilterPushDownHelper {
     }
 
     private static Optional<String> convertOnlyChild(
-            Function<String[], String> sqlClauseFormatter, CallExpression call) {
-        List<ResolvedExpression> children = call.getResolvedChildren();
-        if (children.size() != 1) {
-            return Optional.empty();
-        }
-
-        ResolvedExpression child = children.get(0);
-
-        if (child instanceof CallExpression) {
-            Optional<String> sqlClause = convertExpression(child, 1);
-            return sqlClause.map(s -> sqlClauseFormatter.apply(new String[]{s}));
-        }
-
-        if (!(child instanceof FieldReferenceExpression)) {
-            return Optional.empty();
-        }
-
-        FieldReferenceExpression fieldExpression = (FieldReferenceExpression) child;
-        String fieldName = quoteIdentifier(fieldExpression.getName());
-        return Optional.of(sqlClauseFormatter.apply(new String[] {fieldName}));
+            Function<List<String>, String> sqlClauseFormatter, CallExpression call) {
+//        List<ResolvedExpression> children = call.getResolvedChildren();
+//        if (children.size() != 1) {
+//            return Optional.empty();
+//        }
+//
+//        ResolvedExpression child = children.get(0);
+//
+//        if (child instanceof CallExpression) {
+//            Optional<String> sqlClause = convertExpression(child, 1);
+//            return sqlClause.map(s -> sqlClauseFormatter.apply(new String[]{s}));
+//        }
+//
+//        if (!(child instanceof FieldReferenceExpression)) {
+//            return Optional.empty();
+//        }
+//
+//        FieldReferenceExpression fieldExpression = (FieldReferenceExpression) child;
+//        String fieldName = quoteIdentifier(fieldExpression.getName());
+//        return Optional.of(sqlClauseFormatter.apply(new String[] {fieldName}));
+        return Optional.empty();
     }
 
     private static Optional<String> convertLogicExpression(
-            Function<String[], String> sqlClauseFormatter, CallExpression call, int filterSize) {
-        List<ResolvedExpression> args = call.getResolvedChildren();
-        if (args.size() != 2) {
-            return Optional.empty();
-        }
-
-        String left = convertExpression(args.get(0), args.size()).orElse(null);
-        String right = convertExpression(args.get(1), args.size()).orElse(null);
-        if (left == null || right == null) {
-            return Optional.empty();
-        }
-
-        String sqlClause = sqlClauseFormatter.apply(new String[] {left, right});
-        if (filterSize > 1) {
-            sqlClause = String.join("", "(", sqlClause, ")");
-        }
-        return Optional.of(sqlClause);
+            Function<List<String>, String> sqlClauseFormatter, CallExpression call, int filterSize) {
+//        List<ResolvedExpression> args = call.getResolvedChildren();
+//        if (args.size() != 2) {
+//            return Optional.empty();
+//        }
+//
+//        String left = convertExpression(args.get(0), args.size()).orElse(null);
+//        String right = convertExpression(args.get(1), args.size()).orElse(null);
+//        if (left == null || right == null) {
+//            return Optional.empty();
+//        }
+//
+//        String sqlClause = sqlClauseFormatter.apply(new String[] {left, right});
+//        if (filterSize > 1) {
+//            sqlClause = String.join("", "(", sqlClause, ")");
+//        }
+//        return Optional.of(sqlClause);
+        return Optional.empty();
     }
 
     private static Optional<String> convertFieldAndLiteral(
-            Function<String[], String> sqlClauseFormatter, CallExpression callExpression) {
+            Function<List<String>, String> sqlClauseFormatter, CallExpression callExpression) {
         List<ResolvedExpression> args = callExpression.getResolvedChildren();
         if (args.size() != 2) {
             return Optional.empty();
@@ -167,10 +169,10 @@ public class FilterPushDownHelper {
                         .map(expression -> (ValueLiteralExpression) expression)
                         .findAny()
                         .orElse(null);
-        if (literalExpression != null) {
-            String literalValue = convertValueLiteral(literalExpression).orElse(null);
-            return Optional.of(sqlClauseFormatter.apply(new String[] {fieldName, literalValue}));
-        }
+//        if (literalExpression != null) {
+//            String literalValue = convertValueLiteral(literalExpression).orElse(null);
+//            return Optional.of(sqlClauseFormatter.apply(new String[] {fieldName, literalValue}));
+//        }
 
         TypeLiteralExpression typeLiteralExpression =
                 args.stream()
@@ -178,10 +180,10 @@ public class FilterPushDownHelper {
                         .map(expression -> (TypeLiteralExpression) expression)
                         .findAny()
                         .orElse(null);
-        if (typeLiteralExpression != null) {
-            String typeLiteral = convertTypeLiteral(typeLiteralExpression).orElse(null);
-            return Optional.of(sqlClauseFormatter.apply(new String[] {fieldName, typeLiteral}));
-        }
+//        if (typeLiteralExpression != null) {
+//            String typeLiteral = convertTypeLiteral(typeLiteralExpression).orElse(null);
+//            return Optional.of(sqlClauseFormatter.apply(new String[] {fieldName, typeLiteral}));
+//        }
 
         return Optional.empty();
     }

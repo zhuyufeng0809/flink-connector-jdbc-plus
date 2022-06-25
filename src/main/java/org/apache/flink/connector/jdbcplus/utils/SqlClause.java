@@ -1,38 +1,39 @@
 package org.apache.flink.connector.jdbcplus.utils;
 
+import java.util.List;
 import java.util.function.Function;
 
 /** SQL filters that support push down. */
 public enum SqlClause {
-    EQ(args -> String.format("%s = %s", args[0], args[1])),
+    EQ(list -> String.format("%s = %s", list.get(0), list.get(1))),
 
-    NOT_EQ(args -> String.format("%s <> %s", args[0], args[1])),
+    NOT_EQ(list -> String.format("%s <> %s", list.get(0), list.get(1))),
 
-    GT(args -> String.format("%s > %s", args[0], args[1])),
+    GT(list -> String.format("%s > %s", list.get(0), list.get(1))),
 
-    GT_EQ(args -> String.format("%s >= %s", args[0], args[1])),
+    GT_EQ(list -> String.format("%s >= %s", list.get(0), list.get(1))),
 
-    LT(args -> String.format("%s < %s", args[0], args[1])),
+    LT(list -> String.format("%s < %s", list.get(0), list.get(1))),
 
-    LT_EQ(args -> String.format("%s <= %s", args[0], args[1])),
+    LT_EQ(list -> String.format("%s <= %s", list.get(0), list.get(1))),
 
-    IS_NULL(args -> String.format("%s IS NULL", args[0])),
+    IS_NULL(list -> String.format("%s IS NULL", list.get(0))),
 
-    IS_NOT_NULL(args -> String.format("%s IS NOT NULL", args[0])),
+    IS_NOT_NULL(list -> String.format("%s IS NOT NULL", list.get(0))),
 
-    AND(args -> String.format("%s AND %s", args[0], args[1])),
+    AND(list -> String.format("%s AND %s", list.get(0), list.get(1))),
 
-    OR(args -> String.format("%s OR %s", args[0], args[1])),
+    OR(list -> String.format("%s OR %s", list.get(0), list.get(1))),
 
-    CAST(args -> String.format("CAST(%s AS %s)", args[0], args[1])),
+    CAST(list -> String.format("CAST(%s AS %s)", list.get(0), list.get(1))),
 
-    LIKE(args -> String.format("%s LIKE %s", args[0], args[1])),
+    LIKE(list -> String.format("%s LIKE %s", list.get(0), list.get(1))),
 
-    NOT(args -> String.format("!(%s)", args[0]));
+    NOT(list -> String.format("!(%s)", list.get(0)));
 
-    public final Function<String[], String> formatter;
+    public final Function<List<String>, String> formatter;
 
-    SqlClause(final Function<String[], String> function) {
+    SqlClause(final Function<List<String>, String> function) {
         this.formatter = function;
     }
 }
