@@ -203,20 +203,8 @@ public class JdbcDynamicTableSource
 
     @Override
     public Result applyFilters(List<ResolvedExpression> filters) {
-//        System.out.println(options.getTableName() + " filter push down is:");
-//        System.out.println("original->" + filters);
-//        this.filterClause = FilterPushDownHelper.convert(filters);
-//        System.out.println("convert->" + this.filterClause);
-        System.out.println(options.getTableName() + " filter push down is:");
-        System.out.println("original->" + filters);
-//        System.out.println("convert->" + this.filterClause);
-        String filter = filters.stream()
-                .map(expression -> expression.accept(FilterExpressionConverter.getConvertor()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(joining(" AND "));
-        System.out.println("convert->" + filter);
-        filterClause = filter;
-        return Result.of(new ArrayList<>(filters), new ArrayList<>(filters));
+        FilterExpressionConverter converter = new FilterExpressionConverter();
+        this.filterClause = converter.convert(filters);
+        return Result.of(converter.getAcceptedFilters(), converter.getRemainingFilters());
     }
 }
