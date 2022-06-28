@@ -32,7 +32,7 @@ public class FilterPushDownHelper {
         FILTERS.put(BuiltInFunctionDefinitions.IS_NOT_NULL, IS_NOT_NULL);
         FILTERS.put(BuiltInFunctionDefinitions.AND, AND);
         FILTERS.put(BuiltInFunctionDefinitions.OR, OR);
-        FILTERS.put(BuiltInFunctionDefinitions.CAST, CAST);
+//        FILTERS.put(BuiltInFunctionDefinitions.CAST, CAST);
         FILTERS.put(BuiltInFunctionDefinitions.LIKE, LIKE);
         FILTERS.put(BuiltInFunctionDefinitions.NOT, NOT);
     }
@@ -85,8 +85,8 @@ public class FilterPushDownHelper {
                 return convertLogicExpression(OR.formatter, call, filterSize);
             case AND:
                 return convertLogicExpression(AND.formatter, call, filterSize);
-            case CAST:
-                return convertFieldAndLiteral(CAST.formatter, call);
+//            case CAST:
+//                return convertFieldAndLiteral(CAST.formatter, call);
             case LIKE:
                 return convertFieldAndLiteral(LIKE.formatter, call);
             case IS_NULL:

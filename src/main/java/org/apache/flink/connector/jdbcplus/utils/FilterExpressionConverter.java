@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
 
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -39,8 +38,17 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
     public String convert(List<ResolvedExpression> unconvertedExpressions) {
         return unconvertedExpressions
                 .stream()
-                .filter(this::isSupport)
-                .map(expression -> expression.accept(this))
+                .map(resolvedExpression -> {
+                    Optional<String> convertedFilter = resolvedExpression.accept(this);
+
+                    if (convertedFilter.isPresent()) {
+                        this.acceptedFilters.add(resolvedExpression);
+                    } else {
+                        this.remainingFilters.add(resolvedExpression);
+                    }
+
+                    return convertedFilter;
+                })
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(joining(" AND "));
@@ -54,37 +62,29 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
         return remainingFilters;
     }
 
-    boolean isSupport(ResolvedExpression resolvedExpression) {
-        FunctionDefinition function = ((CallExpression) resolvedExpression).getFunctionDefinition();
-
-        if (SupportFilter.contain(function)) {
-            this.acceptedFilters.add(resolvedExpression);
-            return true;
-        } else {
-            this.remainingFilters.add(resolvedExpression);
-            return false;
-        }
-    }
-
     @Override
     public Optional<String> visit(CallExpression call) {
         FunctionDefinition function = call.getFunctionDefinition();
-        SqlClause sqlClause = SupportFilter.getFilterClause(function);
-        List<ResolvedExpression> childrenExpression = call.getResolvedChildren();
+        if (!SupportFilter.contain(function)) {
+            return Optional.empty();
+        }
 
-        List<String> args = childrenExpression
+        SqlClause sqlClause = SupportFilter.getFilterClause(function);
+
+        List<String> args = call
+                .getResolvedChildren()
                 .stream()
                 .map(resolvedExpression -> resolvedExpression.accept(this))
+                .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
 
-        String filterClause = sqlClause.formatter.apply(args);
-
-        if (childrenExpression.size() > 1) {
-            filterClause = String.join("", "(", filterClause, ")");
+        if (args.size() == sqlClause.argsNum) {
+            String filterClause = sqlClause.formatter.apply(args);
+            return Optional.of(String.join("", "(", filterClause, ")"));
+        } else {
+            return Optional.empty();
         }
-
-        return Optional.ofNullable(filterClause);
     }
 
     @Override
@@ -99,7 +99,7 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
 
     @Override
     public Optional<String> visit(TypeLiteralExpression typeLiteral) {
-        return convertTypeLiteral(typeLiteral);
+        return Optional.empty();
     }
 
     @Override

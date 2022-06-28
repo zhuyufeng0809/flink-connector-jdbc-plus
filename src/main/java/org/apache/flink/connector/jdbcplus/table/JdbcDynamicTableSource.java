@@ -205,6 +205,9 @@ public class JdbcDynamicTableSource
     public Result applyFilters(List<ResolvedExpression> filters) {
         FilterExpressionConverter converter = new FilterExpressionConverter();
         this.filterClause = converter.convert(filters);
+        System.out.println(options.getTableName());
+//        System.out.println(filters);
+        System.out.println(converter.getRemainingFilters());
         return Result.of(converter.getAcceptedFilters(), converter.getRemainingFilters());
     }
 }
