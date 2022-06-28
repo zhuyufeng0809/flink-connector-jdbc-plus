@@ -25,8 +25,6 @@ public enum SqlClause {
 
     OR(list -> String.format("%s OR %s", list.get(0), list.get(1)), 2),
 
-//    CAST(list -> String.format("CAST(%s AS %s)", list.get(0), list.get(1))),
-
     LIKE(list -> String.format("%s LIKE %s", list.get(0), list.get(1)), 2),
 
     NOT(list -> String.format("!(%s)", list.get(0)), 1);

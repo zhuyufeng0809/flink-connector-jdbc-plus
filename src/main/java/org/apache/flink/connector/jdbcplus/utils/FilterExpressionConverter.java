@@ -3,9 +3,7 @@ package org.apache.flink.connector.jdbcplus.utils;
 import org.apache.flink.table.expressions.*;
 import org.apache.flink.table.functions.FunctionDefinition;
 
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -14,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -110,34 +109,11 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
     private Optional<String> convertValueLiteral(ValueLiteralExpression expression) {
         return expression
                 .getValueAs(expression.getOutputDataType().getLogicalType().getDefaultConversion())
-                .map(
-                        o -> {
+                .map((Function<Object, String>) o -> {
                             TimeZone timeZone = getTimeZone();
-                            String value;
-                            if (o instanceof Time) {
-                                value =
-                                        JdbcValueFormatter.formatTimestamp(
-                                                toFixedDateTimestamp(((Time) o).toLocalTime()),
-                                                timeZone);
-                            } else if (o instanceof LocalTime) {
-                                value =
-                                        JdbcValueFormatter.formatTimestamp(
-                                                toFixedDateTimestamp((LocalTime) o), timeZone);
-                            } else if (o instanceof Instant) {
-                                value =
-                                        JdbcValueFormatter.formatTimestamp(
-                                                Timestamp.from((Instant) o), timeZone);
-                            } else {
-                                value =
-                                        JdbcValueFormatter.formatObject(
-                                                o, timeZone, timeZone);
-                            }
-
-                            value =
-                                    JdbcValueFormatter.needsQuoting(o)
-                                            ? String.join("", "'", value, "'")
-                                            : value;
-                            return value;
+                            String value = JdbcValueFormatter.formatObject(o, timeZone, timeZone);
+                            return JdbcValueFormatter.needsQuoting(o) ?
+                                    String.join("", "'", value, "'") : value;
                         });
     }
 
