@@ -46,52 +46,52 @@ public class JdbcValueFormatter {
 
     private static final ThreadLocal<SimpleDateFormat> dateTimeFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 
-    public static String formatInt(int myInt) {
+    private static String formatInt(int myInt) {
         return Integer.toString(myInt);
     }
 
-    public static String formatDouble(double myDouble) {
-        return Double.toString(myDouble);
-    }
-
-    public static String formatLong(long myLong) {
-        return Long.toString(myLong);
-    }
-
-    public static String formatFloat(float myFloat) {
+    private static String formatFloat(float myFloat) {
         return Float.toString(myFloat);
     }
 
-    public static String formatBigDecimal(BigDecimal myBigDecimal) {
+    private static String formatDouble(double myDouble) {
+        return Double.toString(myDouble);
+    }
+
+    private static String formatLong(long myLong) {
+        return Long.toString(myLong);
+    }
+
+    private static String formatBigDecimal(BigDecimal myBigDecimal) {
         return myBigDecimal != null ? myBigDecimal.toPlainString() : null;
     }
 
-    public static String formatShort(short myShort) {
+    private static String formatShort(short myShort) {
         return Short.toString(myShort);
     }
 
-    public static String formatString(String myString) {
+    private static String formatString(String myString) {
         return escape(myString);
     }
 
-    public static String formatBoolean(boolean myBoolean) {
+    private static String formatBoolean(boolean myBoolean) {
         return myBoolean ? "1" : "0";
     }
 
-    public static String formatDate(Date date, TimeZone timeZone) {
+    private static String formatDate(Date date, TimeZone timeZone) {
         SimpleDateFormat formatter = getDateFormat();
         formatter.setTimeZone(timeZone);
         return formatter.format(date);
     }
 
-    public static String formatTime(Time time, TimeZone timeZone) {
+    private static String formatTime(Time time, TimeZone timeZone) {
         return TIME_FORMATTER.format(
                 Instant.ofEpochMilli(time.getTime())
                         .atZone(timeZone.toZoneId())
                         .toLocalTime());
     }
 
-    public static String formatTimestamp(Timestamp time, TimeZone timeZone) {
+    private static String formatTimestamp(Timestamp time, TimeZone timeZone) {
         SimpleDateFormat formatter = getDateTimeFormat();
         formatter.setTimeZone(timeZone);
         StringBuilder formatted = new StringBuilder(formatter.format(time));
@@ -101,45 +101,58 @@ public class JdbcValueFormatter {
         return formatted.toString();
     }
 
-    public static String formatBigInteger(BigInteger x) {
+    private static String formatBigInteger(BigInteger x) {
         return x.toString();
     }
 
-    public static String formatLocalDate(LocalDate x) {
+    private static String formatLocalDate(LocalDate x) {
         return DATE_FORMATTER.format(x);
     }
 
-    public static String formatLocalDateTime(LocalDateTime x) {
+    private static String formatLocalDateTime(LocalDateTime x) {
         return DATE_TIME_FORMATTER.format(x);
     }
 
-    public static String formatLocalTime(LocalTime x) {
+    private static String formatLocalTime(LocalTime x) {
         return TIME_FORMATTER.format(x);
     }
 
-    public static String formatOffsetTime(OffsetTime x) {
+    private static String formatOffsetTime(OffsetTime x) {
         return DateTimeFormatter.ISO_OFFSET_TIME.format(x);
     }
 
-    public static String formatOffsetDateTime(OffsetDateTime x, TimeZone timeZone) {
+    private static String formatOffsetDateTime(OffsetDateTime x, TimeZone timeZone) {
         return DATE_TIME_FORMATTER
                 .withZone(timeZone.toZoneId())
                 .format(x);
     }
 
-    public static String formatZonedDateTime(ZonedDateTime x, TimeZone timeZone) {
+    private static String formatZonedDateTime(ZonedDateTime x, TimeZone timeZone) {
         return DATE_TIME_FORMATTER
                 .withZone(timeZone.toZoneId())
                 .format(x);
     }
 
-    public static String formatInstant(Instant x, TimeZone timeZone) {
+    private static String formatInstant(Instant x, TimeZone timeZone) {
         return DATE_TIME_FORMATTER
                 .withZone(timeZone.toZoneId())
                 .format(x);
     }
 
-    public static String formatObject(Object x, TimeZone dateTimeZone,
+    public static String formatObject(Object x) {
+        TimeZone timeZone = getTimeZone();
+
+        String value = formatObject(x, timeZone, timeZone);
+
+        if (value == null) {
+            return null;
+        } else {
+            return needsQuoting(x) ? String.join("", "'", value, "'") : value;
+        }
+
+    }
+
+    private static String formatObject(Object x, TimeZone dateTimeZone,
                                       TimeZone dateTimeTimeZone)
     {
         if (x instanceof String) {
@@ -181,11 +194,11 @@ public class JdbcValueFormatter {
         } else if (x instanceof BigInteger) {
             return formatBigInteger((BigInteger) x);
         } else {
-            return String.valueOf(x);
+            return null;
         }
     }
 
-    public static boolean needsQuoting(Object o) {
+    private static boolean needsQuoting(Object o) {
         return o != null
                 && !(o instanceof Array)
                 && !(o instanceof Boolean)
@@ -203,7 +216,11 @@ public class JdbcValueFormatter {
         return dateTimeFormat.get();
     }
 
-    public static String escape(String s) {
+    private static TimeZone getTimeZone() {
+        return TimeZone.getDefault();
+    }
+
+    private static String escape(String s) {
         if (s == null) {
             return "\\N";
         }

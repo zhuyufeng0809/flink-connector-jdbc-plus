@@ -3,16 +3,9 @@ package org.apache.flink.connector.jdbcplus.utils;
 import org.apache.flink.table.expressions.*;
 import org.apache.flink.table.functions.FunctionDefinition;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.TimeZone;
-
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
@@ -109,12 +102,7 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
     private Optional<String> convertValueLiteral(ValueLiteralExpression expression) {
         return expression
                 .getValueAs(expression.getOutputDataType().getLogicalType().getDefaultConversion())
-                .map((Function<Object, String>) o -> {
-                            TimeZone timeZone = getTimeZone();
-                            String value = JdbcValueFormatter.formatObject(o, timeZone, timeZone);
-                            return JdbcValueFormatter.needsQuoting(o) ?
-                                    String.join("", "'", value, "'") : value;
-                        });
+                .map(JdbcValueFormatter::formatObject);
     }
 
     private Optional<String> convertFieldReference(FieldReferenceExpression expression) {
@@ -127,14 +115,5 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
 
     private String quoteIdentifier(String identifier) {
         return String.join("", "`", identifier, "`");
-    }
-
-    private TimeZone getTimeZone() {
-        return TimeZone.getDefault();
-    }
-
-    private Timestamp toFixedDateTimestamp(LocalTime localTime) {
-        LocalDateTime localDateTime = localTime.atDate(LocalDate.ofEpochDay(1));
-        return Timestamp.valueOf(localDateTime);
     }
 }
