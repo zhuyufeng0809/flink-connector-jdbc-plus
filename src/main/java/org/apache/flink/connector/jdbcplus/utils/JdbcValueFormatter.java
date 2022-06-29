@@ -46,6 +46,9 @@ public class JdbcValueFormatter {
 
     private static final ThreadLocal<SimpleDateFormat> dateTimeFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 
+    private JdbcValueFormatter() {
+    }
+
     private static String formatInt(int myInt) {
         return Integer.toString(myInt);
     }
@@ -127,18 +130,6 @@ public class JdbcValueFormatter {
                 .format(x);
     }
 
-    private static String formatZonedDateTime(ZonedDateTime x, TimeZone timeZone) {
-        return DATE_TIME_FORMATTER
-                .withZone(timeZone.toZoneId())
-                .format(x);
-    }
-
-    private static String formatInstant(Instant x, TimeZone timeZone) {
-        return DATE_TIME_FORMATTER
-                .withZone(timeZone.toZoneId())
-                .format(x);
-    }
-
     public static String formatObject(Object x) {
         TimeZone timeZone = getTimeZone();
 
@@ -177,8 +168,6 @@ public class JdbcValueFormatter {
             return formatTime((Time) x, dateTimeTimeZone);
         } else if (x instanceof LocalTime) {
             return formatLocalTime((LocalTime) x);
-        } else if (x instanceof Instant) {
-            return formatInstant((Instant) x, dateTimeZone);
         } else if (x instanceof OffsetTime) {
             return formatOffsetTime((OffsetTime) x);
         } else if (x instanceof Timestamp) {
@@ -187,8 +176,6 @@ public class JdbcValueFormatter {
             return formatLocalDateTime((LocalDateTime) x);
         } else if (x instanceof OffsetDateTime) {
             return formatOffsetDateTime((OffsetDateTime) x, dateTimeTimeZone);
-        } else if (x instanceof ZonedDateTime) {
-            return formatZonedDateTime((ZonedDateTime) x, dateTimeTimeZone);
         } else if (x instanceof Boolean) {
             return formatBoolean((Boolean) x);
         } else if (x instanceof BigInteger) {

@@ -1,7 +1,5 @@
 package org.apache.flink.connector.jdbcplus.utils;
 
-import org.apache.flink.types.Row;
-import org.apache.flink.types.RowKind;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -10,54 +8,145 @@ import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for the {@link JdbcValueFormatter}.
  */
 public class JdbcValueFormatterTest {
 
-    private Map<String, Object> supportDataType;
-    private Map<String, Object> unsupportedDataType;
+    private static Map<String, Object> supportDataType;
+    private static Map<String, Object> unsupportedDataType;
 
     @BeforeAll
-    void PrepareDataType() {
-        this.supportDataType = new HashMap<>();
-        this.unsupportedDataType = new HashMap<>();
+    static void PrepareDataType() {
+        supportDataType = new HashMap<>();
+        unsupportedDataType = new HashMap<>();
 
-        this.supportDataType.put("Int", 1337);
-        this.supportDataType.put("Float", 4.2f);
-        this.supportDataType.put("Double", 23.42);
-        this.supportDataType.put("Long", -23L);
-        this.supportDataType.put("BigDecimal", BigDecimal.valueOf(42.23));
-        this.supportDataType.put("Short", Short.valueOf("-23"));
-        this.supportDataType.put("NormalString", "foo");
-        this.supportDataType.put("StringWithSymbol", "f'oo\to");
-        this.supportDataType.put("Boolean", Boolean.TRUE);
-        this.supportDataType.put("Date", new Date(1557136800000L));
-        this.supportDataType.put("Time", new Time(1557136800000L));
-        this.supportDataType.put("Timestamp", new Timestamp(1557136800000L));
-        this.supportDataType.put("BigInteger", BigInteger.valueOf(1337));
+        unsupportedDataType.put("Instant", Instant.now());
 
-        this.supportDataType.put("LocalDate", LocalDate.of(2020, 1, 7));
-        this.supportDataType.put("LocalDateTime", LocalDateTime.of(2020, 1, 7, 13, 37, 42, 23));
-        this.supportDataType.put("LocalTime", LocalTime.parse("13:37:42.023"));
-        this.supportDataType.put("OffsetTime", BigInteger.valueOf(1337));
-        this.supportDataType.put("BigInteger", BigInteger.valueOf(1337));
-        this.supportDataType.put("BigInteger", BigInteger.valueOf(1337));
+        supportDataType.put("Int", 1337);
+        supportDataType.put("Float", 4.2f);
+        supportDataType.put("Double", 23.42);
+        supportDataType.put("Long", -23L);
+        supportDataType.put("BigDecimal", BigDecimal.valueOf(42.23));
+        supportDataType.put("Short", Short.valueOf("-23"));
+        supportDataType.put("NormalString", "foo");
+        supportDataType.put("StringWithSymbol", "f'oo\to");
+        supportDataType.put("Boolean", Boolean.TRUE);
+        supportDataType.put("Date", new Date(1557136800000L));
+        supportDataType.put("Time", new Time(1557136800000L));
+        supportDataType.put("Timestamp", new Timestamp(1557136800000L));
+        supportDataType.put("BigInteger", BigInteger.valueOf(1337));
+        supportDataType.put("LocalDate", LocalDate.of(2020, 1, 7));
+        supportDataType.put("LocalDateTime", LocalDateTime.of(2020, 1, 7, 13, 37, 42, 23));
+        supportDataType.put("LocalTime", LocalTime.parse("13:37:42.023"));
+        supportDataType.put("OffsetTime",
+                OffsetTime.of(LocalTime.parse("13:37:42.023"),
+                        ZoneOffset.ofHoursMinutes(1, 7)));
+        supportDataType.put("OffsetDateTime",
+                OffsetDateTime.of(LocalDateTime.of(2020, 1, 7, 13, 37, 42, 107),
+                        ZoneOffset.ofHoursMinutes(2, 30)));
     }
 
     @Test
-    void shouldReturnFormatValueWhenAcceptSupportDataType() {
-
+    void shouldReturnFormatValueWhenAcceptInt() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Int")))
+                .as("Test Int").isEqualTo("1337");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptFloat() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Float")))
+                .as("Test Float").isEqualTo("4.2");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptDouble() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Double")))
+                .as("Test Double").isEqualTo("23.42");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptLong() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Long")))
+                .as("Test Long").isEqualTo("-23");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptBigDecimal() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("BigDecimal")))
+                .as("Test BigDecimal").isEqualTo("42.23");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptShort() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Short")))
+                .as("Test Short").isEqualTo("-23");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptNormalString() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("NormalString")))
+                .as("Test NormalString").isEqualTo("'foo'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptStringWithSymbol() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("StringWithSymbol")))
+                .as("Test StringWithSymbol").isEqualTo("'f\\'oo\\to'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptBoolean() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Boolean")))
+                .as("Test Boolean").isEqualTo("1");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptDate() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Date")))
+                .as("Test Date").isEqualTo("'2019-05-06'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptTime() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Time")))
+                .as("Test Time").isEqualTo("'18:00:00'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptTimestamp() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Timestamp")))
+                .as("Test Timestamp").isEqualTo("'2019-05-06 18:00:00'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptBigInteger() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("BigInteger")))
+                .as("Test BigInteger").isEqualTo("1337");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptLocalDate() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("LocalDate")))
+                .as("Test LocalDate").isEqualTo("'2020-01-07'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptLocalDateTime() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("LocalDateTime")))
+                .as("Test LocalDateTime").isEqualTo("'2020-01-07 13:37:42'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptLocalTime() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("LocalTime")))
+                .as("Test LocalTime").isEqualTo("'13:37:42'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptOffsetTime() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("OffsetTime")))
+                .as("Test OffsetTime").isEqualTo("'13:37:42.023+01:07'");
+    }
+    @Test
+    void shouldReturnFormatValueWhenAcceptOffsetDateTime() {
+        assertThat(JdbcValueFormatter.formatObject(supportDataType.get("OffsetDateTime")))
+                .as("Test OffsetDateTime").isEqualTo("'2020-01-07 19:07:42'");
     }
 
     @Test
     void shouldReturnNullWhenAcceptUnsupportedDataType() {
-
+        assertThat(JdbcValueFormatter.formatObject(unsupportedDataType.get("Instant")))
+                .as("Test Unsupported Instant").isNull();
     }
 }
