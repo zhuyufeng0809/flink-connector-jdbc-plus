@@ -54,98 +54,98 @@ public class JdbcValueFormatterTest {
     }
 
     @Test
-    void shouldReturnFormatValueWhenAcceptInt() {
+    void testAcceptInt() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Int")))
                 .as("Test Int").isEqualTo("1337");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptFloat() {
+    void testAcceptFloat() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Float")))
                 .as("Test Float").isEqualTo("4.2");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptDouble() {
+    void testAcceptDouble() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Double")))
                 .as("Test Double").isEqualTo("23.42");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptLong() {
+    void testAcceptLong() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Long")))
                 .as("Test Long").isEqualTo("-23");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptBigDecimal() {
+    void testAcceptBigDecimal() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("BigDecimal")))
                 .as("Test BigDecimal").isEqualTo("42.23");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptShort() {
+    void testAcceptShort() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Short")))
                 .as("Test Short").isEqualTo("-23");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptNormalString() {
+    void testAcceptNormalString() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("NormalString")))
                 .as("Test NormalString").isEqualTo("'foo'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptStringWithSymbol() {
+    void testAcceptStringWithSymbol() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("StringWithSymbol")))
                 .as("Test StringWithSymbol").isEqualTo("'f\\'oo\\to'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptBoolean() {
+    void testAcceptBoolean() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Boolean")))
                 .as("Test Boolean").isEqualTo("1");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptDate() {
+    void testAcceptDate() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Date")))
                 .as("Test Date").isEqualTo("'2019-05-06'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptTime() {
+    void testAcceptTime() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Time")))
                 .as("Test Time").isEqualTo("'18:00:00'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptTimestamp() {
+    void testAcceptTimestamp() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("Timestamp")))
                 .as("Test Timestamp").isEqualTo("'2019-05-06 18:00:00'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptBigInteger() {
+    void testAcceptBigInteger() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("BigInteger")))
                 .as("Test BigInteger").isEqualTo("1337");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptLocalDate() {
+    void testAcceptLocalDate() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("LocalDate")))
                 .as("Test LocalDate").isEqualTo("'2020-01-07'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptLocalDateTime() {
+    void testAcceptLocalDateTime() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("LocalDateTime")))
                 .as("Test LocalDateTime").isEqualTo("'2020-01-07 13:37:42'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptLocalTime() {
+    void testAcceptLocalTime() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("LocalTime")))
                 .as("Test LocalTime").isEqualTo("'13:37:42'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptOffsetTime() {
+    void testAcceptOffsetTime() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("OffsetTime")))
                 .as("Test OffsetTime").isEqualTo("'13:37:42.023+01:07'");
     }
     @Test
-    void shouldReturnFormatValueWhenAcceptOffsetDateTime() {
+    void testAcceptOffsetDateTime() {
         assertThat(JdbcValueFormatter.formatObject(supportDataType.get("OffsetDateTime")))
                 .as("Test OffsetDateTime").isEqualTo("'2020-01-07 19:07:42'");
     }
 
     @Test
-    void shouldReturnNullWhenAcceptUnsupportedDataType() {
+    void testAcceptUnsupportedDataType() {
         assertThat(JdbcValueFormatter.formatObject(unsupportedDataType.get("Instant")))
                 .as("Test Unsupported Instant").isNull();
     }
