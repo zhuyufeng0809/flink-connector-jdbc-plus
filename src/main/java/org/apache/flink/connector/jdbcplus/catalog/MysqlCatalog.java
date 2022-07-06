@@ -209,23 +209,6 @@ public class MysqlCatalog extends AbstractJdbcCatalog {
         return tables.contains(tablePath.getFullName());
     }
 
-//    public Map<String, String> getMinAndMaxBound(String sql) {
-//        HashMap<String, String> result = new HashMap<>();
-//
-//        try(Connection conn = DriverManager.getConnection(baseUrl, username, pwd)) {
-//            PreparedStatement statement = conn.prepareStatement(sql);
-//            ResultSet resultSet = statement.executeQuery();
-//
-//            resultSet.next();
-//            result.put("lower-bound", resultSet.getString(1));
-//            result.put("upper-bound", resultSet.getString(2));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return result;
-//    }
-
     private DataType fromJDBCType(ResultSetMetaData metadata, int colIndex) throws SQLException {
         String mysqlType = metadata.getColumnTypeName(colIndex);
 

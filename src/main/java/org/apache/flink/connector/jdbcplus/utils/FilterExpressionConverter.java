@@ -91,7 +91,7 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
 
     @Override
     public Optional<String> visit(TypeLiteralExpression typeLiteral) {
-        return Optional.empty();
+        return convertTypeLiteral(typeLiteral);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
     }
 
     private Optional<String> convertTypeLiteral(TypeLiteralExpression expression) {
-        return Optional.of(expression.getOutputDataType().getLogicalType().asSummaryString());
+        return Optional.of(expression.getOutputDataType().getLogicalType().asSummaryString().replaceAll(" NOT NULL", ""));
     }
 
     private String quoteIdentifier(String identifier) {
