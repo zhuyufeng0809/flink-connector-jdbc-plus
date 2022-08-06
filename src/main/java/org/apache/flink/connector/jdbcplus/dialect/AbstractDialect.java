@@ -18,17 +18,42 @@
 
 package org.apache.flink.connector.jdbcplus.dialect;
 
+import org.apache.flink.connector.jdbcplus.utils.FilterClause;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
+import org.apache.flink.table.functions.BuiltInFunctionDefinitions;
+import org.apache.flink.table.functions.FunctionDefinition;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.table.types.logical.DecimalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.TimestampType;
 import org.apache.flink.table.types.logical.VarBinaryType;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.apache.flink.connector.jdbcplus.utils.FilterClause.*;
+import static org.apache.flink.connector.jdbcplus.utils.FilterClause.NOT;
 
 abstract class AbstractDialect implements JdbcDialect {
+
+    static Map<FunctionDefinition, FilterClause> SUPPORT_FILTERS = new HashMap<>();
+
+    static {
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.EQUALS, EQ);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.NOT_EQUALS, NOT_EQ);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.GREATER_THAN, GT);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.GREATER_THAN_OR_EQUAL, GT_EQ);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.LESS_THAN, LT);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.LESS_THAN_OR_EQUAL, LT_EQ);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.IS_NULL, IS_NULL);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.IS_NOT_NULL, IS_NOT_NULL);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.AND, AND);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.OR, OR);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.LIKE, LIKE);
+        SUPPORT_FILTERS.put(BuiltInFunctionDefinitions.NOT, NOT);
+    }
 
     @Override
     public void validate(TableSchema schema) throws ValidationException {
@@ -79,6 +104,7 @@ abstract class AbstractDialect implements JdbcDialect {
             }
         }
     }
+
 
     public abstract int maxDecimalPrecision();
 

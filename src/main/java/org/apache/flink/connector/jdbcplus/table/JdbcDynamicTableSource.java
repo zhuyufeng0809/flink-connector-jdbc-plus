@@ -207,9 +207,10 @@ public class JdbcDynamicTableSource
 
     @Override
     public Result applyFilters(List<ResolvedExpression> filters) {
-        FilterExpressionConverter converter = new FilterExpressionConverter();
+        FilterExpressionConverter converter = new FilterExpressionConverter(options.getDialect());
         this.filter = converter.convert(filters);
         System.out.println(options.getTableName());
+        options.getDialect();
         System.out.println(filters);
         System.out.println(this.filter);
         return Result.of(converter.getAcceptedFilters(), converter.getRemainingFilters());

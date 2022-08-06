@@ -1,5 +1,6 @@
 package org.apache.flink.connector.jdbcplus.utils;
 
+import org.apache.flink.connector.jdbcplus.dialect.JdbcDialect;
 import org.apache.flink.table.expressions.*;
 import org.apache.flink.table.functions.FunctionDefinition;
 
@@ -21,8 +22,10 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
 
     List<ResolvedExpression> acceptedFilters;
     List<ResolvedExpression> remainingFilters;
+    JdbcDialect dialect;
 
-    public FilterExpressionConverter() {
+    public FilterExpressionConverter(JdbcDialect dialect) {
+        this.dialect = dialect;
         this.acceptedFilters = new ArrayList<>();
         this.remainingFilters = new ArrayList<>();
     }
@@ -57,11 +60,11 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
     @Override
     public Optional<String> visit(CallExpression call) {
         FunctionDefinition function = call.getFunctionDefinition();
-        if (!SupportFilter.contain(function)) {
+
+        FilterClause filterClause = dialect.getFilterClause(function);
+        if (filterClause == null) {
             return Optional.empty();
         }
-
-        SqlClause sqlClause = SupportFilter.getFilterClause(function);
 
         List<String> args = call
                 .getResolvedChildren()
@@ -71,9 +74,8 @@ public class FilterExpressionConverter implements ExpressionVisitor<Optional<Str
                 .map(Optional::get)
                 .collect(Collectors.toList());
 
-        if (args.size() == sqlClause.argsNum) {
-            String filterClause = sqlClause.formatter.apply(args);
-            return Optional.of(String.join("", "(", filterClause, ")"));
+        if (args.size() == filterClause.getArgsNum()) {
+            return Optional.of(String.join("", "(", filterClause.apply(args), ")"));
         } else {
             return Optional.empty();
         }

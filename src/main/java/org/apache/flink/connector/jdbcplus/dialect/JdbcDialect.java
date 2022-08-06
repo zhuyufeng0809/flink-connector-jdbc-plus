@@ -20,8 +20,10 @@ package org.apache.flink.connector.jdbcplus.dialect;
 
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.jdbcplus.internal.converter.JdbcRowConverter;
+import org.apache.flink.connector.jdbcplus.utils.FilterClause;
 import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.api.ValidationException;
+import org.apache.flink.table.functions.FunctionDefinition;
 import org.apache.flink.table.types.logical.RowType;
 
 import java.io.Serializable;
@@ -65,6 +67,8 @@ public interface JdbcDialect extends Serializable {
      * @return the limit clause.
      */
     String getLimitClause(long limit);
+
+    FilterClause getFilterClause(FunctionDefinition function);
 
     /**
      * Check if this dialect instance support a specific data type in table schema.
