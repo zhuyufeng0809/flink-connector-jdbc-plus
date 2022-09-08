@@ -23,7 +23,7 @@ under the License.
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.leqee.etl</groupId>
+	<groupId>com.flink.etl</groupId>
 	<artifactId>flink-connector-jdbc-plus_${scala.binary.version}</artifactId>
 	<name>Flink : Connectors : jdbc-plus</name>
 	<version>1.14.3</version>
@@ -32,7 +32,7 @@ under the License.
 
 	<properties>
 		<scala.binary.version>2.12</scala.binary.version>
-		<project.version>1.14.3</project.version>
+		<flink.version>1.14.3</flink.version>
 		<postgres.version>42.2.10</postgres.version>
 		<otj-pg-embedded.version>0.13.3</otj-pg-embedded.version>
 	</properties>
@@ -49,7 +49,7 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-core</artifactId>
-			<version>1.14-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
@@ -199,13 +199,6 @@ under the License.
 			<version>1.16.2</version>
 		</dependency>
 	</dependencies>
-
-	<distributionManagement>
-		<repository>
-			<id>leqee-thirdparty</id>
-			<url>https://nexus.leqee.com/repository/thirdparty</url>
-		</repository>
-	</distributionManagement>
 
 	<build>
 		<plugins>
